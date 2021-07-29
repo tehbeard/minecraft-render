@@ -7,6 +7,7 @@ import { Logger } from './utils/logger';
 //@ts-ignore
 import { createCanvas, loadImage } from 'node-canvas-webgl';
 import { makeAnimatedPNG } from './utils/apng';
+import { INVENTORY_BIOME_COLORS } from './utils/biome-database';
 
 const MATERIAL_FACE_ORDER = ['east', 'west', 'up', 'down', 'south', 'north'] as const;
 
@@ -205,7 +206,7 @@ async function constructTextureMaterial(minecraft: Minecraft, block: BlockModel,
 
 
   ctx.imageSmoothingEnabled = false;
-
+  
   if (face.rotation) {
     ctx.translate(width / 2, height / 2);
     ctx.rotate(face.rotation * THREE.MathUtils.DEG2RAD);
@@ -216,7 +217,8 @@ async function constructTextureMaterial(minecraft: Minecraft, block: BlockModel,
 
   const uv = face.uv ?? [0, 0, width, height];
 
-  ctx.drawImage(image, uv[0], uv[1] + frame * height, uv[2] - uv[0], uv[3] - uv[1], 0, 0, width, height);
+  ctx.drawImage(image, uv[0], uv[1] + (frame * height), uv[2] - uv[0], uv[3] - uv[1], 0, 0, width, height);
+
 
   Logger.trace(() => `Face[${direction}] uv applied`);
 
@@ -228,9 +230,18 @@ async function constructTextureMaterial(minecraft: Minecraft, block: BlockModel,
 
   Logger.trace(() => `Face[${direction}] texture is ready`);
 
+  const blockNameKey = block.blockName?.toUpperCase();
+
+  let textureColor = 0xFFFFFF;
+
+  if(blockNameKey != undefined && blockNameKey in INVENTORY_BIOME_COLORS)
+  {
+    textureColor = INVENTORY_BIOME_COLORS[blockNameKey as keyof typeof INVENTORY_BIOME_COLORS];
+  }
+
   return new THREE.MeshStandardMaterial({
     map: texture,
-    color: 0xffffff,
+    color: textureColor,
     transparent: true,
     roughness: 1,
     metalness: 0,
