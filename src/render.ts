@@ -1,6 +1,6 @@
 import * as THREE from 'three';
 import * as rawCanvas from 'canvas';
-import type { BlockModel, BlockSides, Element, Face, Renderer, RendererOptions } from './utils/types';
+import type { BlockFaces, BlockModel, BlockSides, Element, Face, Renderer, RendererOptions, Vector4 } from './utils/types';
 import type { Minecraft } from './minecraft';
 import { distance, invert, mul, size } from './utils/vector-math';
 import { Logger } from './utils/logger';
@@ -177,7 +177,7 @@ export async function render(minecraft: Minecraft, block: BlockModel): Promise<B
 }
 
 
-async function constructTextureMaterial(minecraft: Minecraft, block: BlockModel, path: string, face: Face, element: Element, direction: string) {
+async function constructTextureMaterial(minecraft: Minecraft, block: BlockModel, path: string, face: Face, element: Element, direction: BlockFaces) {
   const cache = minecraft.getRenderer().textureCache;
   const animatedCache = minecraft.getRenderer().animatedCache;
   const image = cache[path] ? cache[path] : (cache[path] = await loadImage(await minecraft.getTextureFile(path)));
@@ -213,8 +213,8 @@ async function constructTextureMaterial(minecraft: Minecraft, block: BlockModel,
 
     Logger.trace(() => `Face[${direction}] rotation applied`);
   }
-
-  const uv = face.uv ?? [0, 0, width, height];
+  // const uv = face.uv ?? [0, 0, width, height];
+  const uv = face.uv ?? generateDefaultUV(element, direction);
 
   ctx.drawImage(image, uv[0], uv[1] + frame * height, uv[2] - uv[0], uv[3] - uv[1], 0, 0, width, height);
 
@@ -249,7 +249,7 @@ async function constructBlockMaterial(minecraft: Minecraft, block: BlockModel, e
 }
 
 
-async function decodeFace(direction: string, face: Face | null | undefined, block: BlockModel, element: Element, minecraft: Minecraft): Promise<THREE.Material | null> {
+async function decodeFace(direction: BlockFaces, face: Face | null | undefined, block: BlockModel, element: Element, minecraft: Minecraft): Promise<THREE.Material | null> {
   if (!face) {
     Logger.trace(() => `Face[${direction}] doesn't exist`);
     return null;
@@ -278,4 +278,63 @@ function decodeTexture(texture: string, block: BlockModel): string | null {
   Logger.trace(() => `Texture "${texture}" decoded to "${correctedTextureName}"`);
 
   return decodeTexture(correctedTextureName, block);
+}
+
+function generateDefaultUV(element: Element, direction: BlockFaces): Vector4
+{
+  if(element.faces![direction]!.uv!)
+  {
+    return element.faces![direction]!.uv as Vector4;
+  }else if(direction == "up"){
+    // X , Z
+    return [
+      Math.min(element.from![0],element.to![0]),
+      Math.min(element.from![2],element.to![2]),
+      Math.max(element.from![0],element.to![0]),
+      Math.max(element.from![2],element.to![2])
+    ]
+  }
+  else if(direction == "down"){
+    return [
+      Math.min(element.from![0],element.to![0]),
+      Math.min(element.from![2],element.to![2]),
+      Math.max(element.from![0],element.to![0]),
+      Math.max(element.from![2],element.to![2])
+    ]
+  }
+  else if(direction == "north"){
+    return [
+      Math.min(element.from![0],element.to![0]),
+      Math.min(element.from![1],element.to![1]),
+      Math.max(element.from![0],element.to![0]),
+      Math.max(element.from![1],element.to![1])
+    ]
+  }
+  else if(direction == "south"){
+    return [
+      Math.min(element.from![0],element.to![0]),
+      Math.min(element.from![1],element.to![1]),
+      Math.max(element.from![0],element.to![0]),
+      Math.max(element.from![1],element.to![1])
+    ]
+  }
+  else if(direction == "east"){
+    return [
+      Math.min(element.from![2],element.to![2]),
+      Math.min(element.from![1],element.to![1]),
+      Math.max(element.from![2],element.to![2]),
+      Math.max(element.from![1],element.to![1])
+    ]
+  }
+  else if(direction == "west"){
+    return [
+      Math.min(element.from![2],element.to![2]),
+      Math.min(element.from![1],element.to![1]),
+      Math.max(element.from![2],element.to![2]),
+      Math.max(element.from![1],element.to![1])
+    ]
+  }else{
+    throw new Error("Could not generate UV, invalid direction " + direction + " provided");
+  }
+ 
 }
