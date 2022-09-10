@@ -56,6 +56,7 @@ export async function prepareRenderer({ width = 1000, height = 1000, distance = 
     renderer,
     canvas,
     camera,
+    light,
     textureCache: {},
     animatedCache: {},
     options: { width, height, distance, plane, animation }
@@ -74,7 +75,7 @@ export async function destroyRenderer(renderer: Renderer) {
 
 
 export async function render(minecraft: Minecraft, block: BlockModel): Promise<BlockModel & { buffer: Buffer, skip?: string }> {
-  const { canvas, renderer, scene, camera, options } = minecraft.getRenderer()!;
+  const { canvas, renderer, scene, camera, options, light } = minecraft.getRenderer()!;
   const resultBlock: BlockModel & { buffer: Buffer, skip?: string } = block as any;
 
   const gui = block.display?.gui;
@@ -151,6 +152,11 @@ export async function render(minecraft: Minecraft, block: BlockModel): Promise<B
     camera.position.add(new THREE.Vector3(...gui.translation));
     camera.updateMatrix();
     camera.updateProjectionMatrix();
+
+    light.position.set( ...camera.position.toArray());
+    light.position.add( new THREE.Vector3(1,8,0));
+    light.lookAt(0,0,0);
+    // light.position.add( 0,0,0) new THREE.Vector3(105, -90, -45) );
 
     Logger.trace(() => `Camera position set ${camera.position.toArray().join(',')}`);
 

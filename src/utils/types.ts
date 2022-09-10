@@ -68,6 +68,7 @@ export interface Renderer {
   renderer: THREE.WebGLRenderer
   canvas: rawCanvas.Canvas
   camera: THREE.OrthographicCamera
+  light: THREE.DirectionalLight
   textureCache: { [key: string]: any }
   animatedCache: { [key: string]: AnimationMeta | null }
   options: RendererOptions
