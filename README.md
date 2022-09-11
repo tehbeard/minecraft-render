@@ -98,3 +98,13 @@ If you are automating generation process on github or similar CI environments, m
 sudo apt-get install xvfb
 xvfb-run --auto-servernum minecraft-render ...
 ```
+
+
+### Notes
+
+<https://minecraft.fandom.com/wiki/Tutorials/Models#Block_states>
+
+- Rework system
+- Detach Jar from data reading (interface to provide info, allow for directory sources, or prioritized stacks)
+- Incorporate blockstates to configure properly
+- Rotate as needed (see: stairs etc)

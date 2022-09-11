@@ -146,6 +146,7 @@ export async function render(minecraft: Minecraft, block: BlockModel): Promise<B
       clean.push(cube);
     }
 
+    // Ok, X (first param, rotates around the block, not sure why the value is offset so?)
     const rotation = new THREE.Vector3(...gui.rotation).add(new THREE.Vector3(105, -90, -45));
     camera.position.set(...rotation.toArray().map(x => Math.sin(x * THREE.MathUtils.DEG2RAD) * 16) as [number, number, number]);
     camera.lookAt(0, 0, 0);
