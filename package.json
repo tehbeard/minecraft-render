@@ -29,10 +29,10 @@
   "license": "MIT",
   "dependencies": {
     "assign-deep": "^1.0.1",
-    "canvas": "^2.8.0",
+    "canvas": "^2.10.0",
     "commander": "^8.1.0",
     "crc": "^3.8.0",
-    "node-canvas-webgl": "^0.2.6",
+    "node-canvas-webgl": "^0.2.7",
     "node-stream-zip": "^1.13.6",
     "three": "^0.130.1"
   },
