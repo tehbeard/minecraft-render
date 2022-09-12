@@ -3,6 +3,7 @@ import { Jar } from "./utils/jar";
 import type { AnimationMeta, BlockModel, Renderer, RendererOptions } from "./utils/types";
 //@ts-ignore
 import * as deepAssign from 'assign-deep';
+import { ModelBlockstateFile } from "./dataset/types";
 
 export class Minecraft {
   protected jar: Jar
@@ -53,6 +54,42 @@ export class Minecraft {
     } catch (e) {
       throw new Error(`Unable to find model file: ${path}`);
     }
+  }
+
+  async getModelBlockstatesFile<T = ModelBlockstateFile>(name = 'block/block'): Promise<T> {
+    if (name.startsWith('minecraft:')) {
+      name = name.substring('minecraft:'.length);
+    }
+
+    const path = `assets/minecraft/blockstates/${name}.json`;
+
+    try {
+      if (this._cache[path]) {
+        return JSON.parse(JSON.stringify(this._cache[path]));
+      }
+
+      this._cache[path] = await this.jar.readJson(path);
+
+      return this._cache[path];
+    } catch (e) {
+      throw new Error(`Unable to find blockstates file: ${path}`);
+    }
+  }
+
+  async getDefaultModelRotation(name = 'block'): Promise<number> {
+    try{
+      const record = await this.getModelBlockstatesFile(name);
+      if("variants" in record)
+      {
+        let blockstate = Object.values(record.variants)[0];
+        blockstate = Array.isArray(blockstate) ? blockstate[0] : blockstate;
+        return blockstate?.y ?? 0;
+      }
+    }catch(e)
+    {
+      
+    }
+    return 0;
   }
 
   async getTextureFile(name: string = '') {

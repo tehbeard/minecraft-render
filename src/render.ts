@@ -103,10 +103,11 @@ export async function render(minecraft: Minecraft, block: BlockModel): Promise<B
   do {
     Logger.trace(() => `Frame[${block.animationCurrentTick}] started`);
 
-    const clean = [];
     let i = 0;
 
     Logger.trace(() => `Element count = ${block.elements!.length}`);
+
+    const modelGroup = new THREE.Group();
 
     for (const element of block.elements!) {
       Logger.trace(() => `Element[${i}] started rendering`);
@@ -121,7 +122,6 @@ export async function render(minecraft: Minecraft, block: BlockModel): Promise<B
       cube.position.add(new THREE.Vector3(...element.from!));
       cube.position.add(new THREE.Vector3(...element.to!));
       cube.position.multiplyScalar(0.5);
-      cube.position.add(new THREE.Vector3(-8, -8, -8));
 
       Logger.trace(() => `Element[${i}] position set to ${cube.position.toArray().join(',')}`);
 
@@ -143,9 +143,20 @@ export async function render(minecraft: Minecraft, block: BlockModel): Promise<B
 
       cube.renderOrder = ++i;
 
-      scene.add(cube);
-      clean.push(cube);
+      modelGroup.add(cube);
+
     }
+
+
+    modelGroup.position.set(-8, -8, -8);
+
+    const pivot = new THREE.Group();
+
+    pivot.add(modelGroup);
+
+    pivot.rotateY(THREE.MathUtils.DEG2RAD * await minecraft.getDefaultModelRotation(block.blockName) );
+
+    scene.add(pivot);
 
     // Ok, X (first param, rotates around the block, not sure why the value is offset so?)
     const rotation = new THREE.Vector3(...gui.rotation).add(new THREE.Vector3(105, -90, -45));
@@ -155,10 +166,6 @@ export async function render(minecraft: Minecraft, block: BlockModel): Promise<B
     camera.updateMatrix();
     camera.updateProjectionMatrix();
 
-    light.position.set( ...camera.position.toArray());
-    light.position.add( new THREE.Vector3(1,8,0));
-    light.lookAt(0,0,0);
-    // light.position.add( 0,0,0) new THREE.Vector3(105, -90, -45) );
 
     Logger.trace(() => `Camera position set ${camera.position.toArray().join(',')}`);
 
@@ -169,9 +176,7 @@ export async function render(minecraft: Minecraft, block: BlockModel): Promise<B
 
     Logger.trace(() => `Image rendered, buffer size = ${buffer.byteLength} bytes`);
 
-    for (const old of clean) {
-      scene.remove(old);
-    }
+    scene.remove(pivot);
 
     Logger.trace(() => `Scene cleared`);
 
