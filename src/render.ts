@@ -243,7 +243,8 @@ async function constructTextureMaterial(minecraft: Minecraft, block: BlockModel,
     roughness: 1,
     metalness: 0,
     emissive: 1,
-    alphaTest: 0.1
+    alphaTest: 0.1,
+    aoMapIntensity: ("shade" in element && element.shade === false) ? 0 : 1
   });
 }
 

@@ -53,6 +53,7 @@ export interface Element {
   faces?: {
     [key in BlockFaces]?: Face
   }
+  shade?: boolean;
 
   calculatedSize?: Vector
 }
