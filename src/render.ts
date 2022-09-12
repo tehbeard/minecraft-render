@@ -32,7 +32,8 @@ export async function prepareRenderer({ width = 1000, height = 1000, distance = 
   const camera = new THREE.OrthographicCamera(- distance * aspect, distance * aspect, distance, - distance, 0.01, 20000);
 
   const light = new THREE.DirectionalLight(0xFFFFFF, 1.2);
-  light.position.set(-15, 30, -25); // cube directions x => negative:bottom right, y => positive:top, z => negative:bottom left
+  light.position.set(20, 30, -15); // cube directions x => negative:bottom right, y => positive:top, z => negative:bottom left
+  light.lookAt(0,0,0);
   scene.add(light);
 
   Logger.trace(() => `Light added to scene`);

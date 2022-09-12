@@ -25,6 +25,7 @@ export type BlockSides = 'all' | 'top' | 'bottom' | 'side' | 'front' | 'particle
 export interface BlockModel {
   blockName?: string
   parents?: string[]
+  ambientocclusion?: boolean;
   animationMaxTicks?: number
   animationCurrentTick?: number
 
