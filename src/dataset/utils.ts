@@ -8,6 +8,10 @@ export function validateResourceLocation(location: string) {
   }
 }
 
+export function parseJSON<T>(data: Uint8Array): T {
+  return JSON.parse( (new TextDecoder).decode(data) ) as T;
+}
+
 export function constructPath(
   objectType: string,
   suffix: string,
