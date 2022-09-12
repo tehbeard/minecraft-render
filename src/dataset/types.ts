@@ -4,7 +4,9 @@
 export type LoadResourceCallback = ((packType: "assets"|"data", path: string) => Promise<Uint8Array>) & ({ close: () => Promise<any> });
 
 export type ModelBlockstateFile = {
-    variants: Record<string, ModelBlockstate>;
+    variants: Record<string, ModelBlockstate|ModelBlockstate[]>;
+}|{
+    multipart: []
 }
 
 export type ModelBlockstate = {
@@ -12,6 +14,7 @@ export type ModelBlockstate = {
     uvblock?: true;
     x?: number;
     y?: number;
+    weight?: number;
 }
 
 type Coordinate = [number, number, number];
