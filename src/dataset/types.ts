@@ -1,7 +1,12 @@
 
 
 //TODO - Rework this to return a buffer/blob instead
-export type LoadResourceCallback = ((packType: "assets"|"data", path: string) => Promise<Uint8Array>) & ({ close: () => Promise<any> });
+export type LoadResourceCallback = ((packType: "assets"|"data", path: string) => Promise<Uint8Array>) & (
+    { 
+        close: () => Promise<any>,
+        loadAll: (packType: "assets"|"data", path: string) => Promise<Uint8Array[]>
+    }
+    );
 
 export type ModelBlockstateFile = {
     variants: Record<string, ModelBlockstate|ModelBlockstate[]>;
