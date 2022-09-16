@@ -13,6 +13,8 @@ export class RenderTest {
 
   @Spec(180000)
   async renderAll() {
+
+    // const blocks = [await this.minecraftTest.minecraft.getModel('cactus')];
     const blocks = await this.minecraftTest.minecraft.getBlockList();
 
     const renderCandidates = pickBlocks(blocks);
@@ -24,8 +26,13 @@ export class RenderTest {
       }
 
       const filePath = path.resolve(__dirname, `../../test-data/${process.env.RENDER_FOLDER || ''}${render.blockName}.png`);
-
-      await writeAsync(filePath, render.buffer);
+      try{
+        await writeAsync(filePath, render.buffer);
+      }catch(e)
+      {
+        console.error(filePath);
+        throw e;
+      }
     }
   }
 }

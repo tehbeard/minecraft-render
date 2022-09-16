@@ -1,9 +1,10 @@
 
 
 //TODO - Rework this to return a buffer/blob instead
-export type LoadResourceCallback = (
+export type ResourceLoader = (
     { 
         load: (packType: "assets"|"data", path: string) => Promise<Uint8Array>,
+        list: (packType: "assets"|"data", path: string) => Promise<string[]>,
         close: () => Promise<any>,
         loadAll: (packType: "assets"|"data", path: string) => Promise<Uint8Array[]>
     }

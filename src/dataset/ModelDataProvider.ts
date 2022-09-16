@@ -1,12 +1,12 @@
-import { LoadResourceCallback, ModelBlock, ModelBlockstate, ModelBlockstateFile } from "./types";
+import { ResourceLoader, ModelBlock, ModelBlockstate, ModelBlockstateFile } from "./types";
 import { constructPath, parseJSON } from "./utils";
 
 export class ModelDataProvider {
 
-    private dataProvider: LoadResourceCallback;
+    private dataProvider: ResourceLoader;
 
 
-    constructor(dataProvider: LoadResourceCallback)
+    constructor(dataProvider: ResourceLoader)
     {
         this.dataProvider = dataProvider;
     }
