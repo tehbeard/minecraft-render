@@ -37,10 +37,14 @@ export class ResourcePackLoader {
         )
     }
 
-    //TODO - Rework this to provide the raw png 
     getTexture(namespace: string, identifier?: string): Promise<Uint8Array>
     {
         return this.dataProvider.load('assets', constructPath('textures','png', namespace, identifier));
+    }
+
+    async getTextureAsBuffer(namespace: string, identifier?: string): Promise<Buffer>
+    {
+        return Buffer.from(await this.getTexture(namespace, identifier));
     }
 
     getModel(namespace: string, identifier?: string): Promise<ModelBlock>
