@@ -6,57 +6,62 @@ export function jarLoader(jarPath: string): LoadResourceCallback
 {
     const jar = new StreamZipAsync({ file: jarPath });
 
-    const jarFn = function (packType: "assets"|"data", path: string): Promise<Uint8Array>
-    {
-        return jar.entryData(packType + "/" + path)
-        .then(buffer => Uint8Array.from(buffer))
-    }
-
-    jarFn.close = () => jar.close();
-    jarFn.loadAll = async (packType: "assets"|"data", path: string): Promise<Uint8Array []> => {
-        try {
-            return [ await jarFn(packType, path) ];
-        }catch(e)
+    const loader = {
+        async load(packType: "assets"|"data", path: string): Promise<Uint8Array>
         {
-            return [];
+            return jar.entryData(packType + "/" + path)
+            .then(buffer => Uint8Array.from(buffer))
+        },
+        async close() { jar.close(); },
+        async loadAll(packType: "assets"|"data", path: string): Promise<Uint8Array []> {
+            try {
+                return [ await loader.load(packType, path) ];
+            }catch(e)
+            {
+                return [];
+            }
         }
+
+
     };
-    return jarFn;
+    return loader;
 }
 
 
 export function createMultiloader(...loaders: LoadResourceCallback[]): LoadResourceCallback
 {
-    const multiFn = async function (packType: "assets"|"data", path: string): Promise<Uint8Array>
-    {
-        for(const loader of loaders)
+    const loader = {
+        
+        async load(packType: "assets"|"data", path: string): Promise<Uint8Array>
         {
-            try{
-                return await loader(packType, path);
-            }catch(e)
+            for(const childLoader of loaders)
             {
+                try{
+                    return await childLoader.load(packType, path);
+                }catch(e)
+                {
 
+                }
             }
-        }
-        throw new Error(`Could not load "${path}" from any source.`);
-    }
-    
-    multiFn.close = () => Promise.all(loaders.map( l => l.close() ));
+            throw new Error(`Could not load "${path}" from any source.`);
+        },
+        async close() { return Promise.all(loaders.map( l => l.close() )) },
 
-    multiFn.loadAll = async (packType: "assets"|"data", path: string): Promise<Uint8Array[]> => {
-        const results = [];
-        for(const loader of loaders)
-        {
-            try{
-                results.push(await loader(packType, path));
-            }catch(e)
+        async loadAll(packType: "assets"|"data", path: string): Promise<Uint8Array[]> {
+            const results = [];
+            for(const loader of loaders)
             {
+                try{
+                    results.push(await loader.load(packType, path));
+                }catch(e)
+                {
 
+                }
             }
+            return results;
         }
-        return results;
-    }
+    };
 
 
-    return multiFn;
+    return loader;
 }

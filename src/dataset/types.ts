@@ -1,8 +1,9 @@
 
 
 //TODO - Rework this to return a buffer/blob instead
-export type LoadResourceCallback = ((packType: "assets"|"data", path: string) => Promise<Uint8Array>) & (
+export type LoadResourceCallback = (
     { 
+        load: (packType: "assets"|"data", path: string) => Promise<Uint8Array>,
         close: () => Promise<any>,
         loadAll: (packType: "assets"|"data", path: string) => Promise<Uint8Array[]>
     }
@@ -22,18 +23,18 @@ export type ModelBlockstate = {
     weight?: number;
 }
 
-type Coordinate = [number, number, number];
-type Coordinate4 = [number, number, number, number];
+type Vector3 = [number, number, number];
+type Vector4 = [number, number, number, number];
 
 type Directions = "down"|"up"|"north"|"south"|"west"|"east";
 
 type Element = {
-    from: Coordinate;
-    to: Coordinate;
-    rotation: { origin: Coordinate, axis: "x"|"y"|"z", angle: number, rescale: boolean };
+    from: Vector3;
+    to: Vector3;
+    rotation: { origin: Vector3, axis: "x"|"y"|"z", angle: number, rescale: boolean };
     shade: boolean;
     faces: Record< Directions, {
-        uv: Coordinate4;
+        uv: Vector4;
         texture: string;
         cullface: Directions;
         rotation: number;
@@ -48,9 +49,9 @@ export type ModelBlock = {
     display: Record<
         "thirdperson_righthand"|"thirdperson_lefthand"|"firstperson_righthand"|"firstperson_lefthand"|"gui"|"head"|"ground"|"fixed",
         {
-            rotation?: Coordinate;
-            translation?: Coordinate;
-            scale ?: Coordinate
+            rotation?: Vector3;
+            translation?: Vector3;
+            scale ?: Vector3
         }
         >;
     
