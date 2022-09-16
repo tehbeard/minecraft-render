@@ -1,7 +1,7 @@
 import { ResourceLoader, ModelBlock, ModelBlockstate, ModelBlockstateFile } from "./types";
 import { constructPath, parseJSON } from "./utils";
 
-export class ModelDataProvider {
+export class ResourcePackLoader {
 
     private dataProvider: ResourceLoader;
 
@@ -13,26 +13,39 @@ export class ModelDataProvider {
     
     getModelBlockstate(namespace: string, identifier?: string ): Promise<ModelBlockstateFile>
     {
-        return this.dataProvider('assets', constructPath('blockstates', 'json', namespace, identifier))
+        return this.dataProvider.load('assets', constructPath('blockstates', 'json', namespace, identifier))
         .then( parseJSON<ModelBlockstateFile> ); //TODO - Validation of format
     }
 
     getDefaultModelblockstate(namespace: string, identifier?: string): Promise<ModelBlockstate>
     {
         return this.getModelBlockstate(namespace, identifier).then(
-            file => file.variants[0]
+            record => {
+                try{
+                    if("variants" in record)
+                    {
+                      let blockstate = Object.values(record.variants)[0];
+                      blockstate = Array.isArray(blockstate) ? blockstate[0] : blockstate;
+                      return blockstate;
+                    }
+                  }catch(e)
+                  {
+                    
+                  }
+                  throw new Error();
+            }
         )
     }
 
     //TODO - Rework this to provide the raw png 
     getTexture(namespace: string, identifier?: string): Promise<Uint8Array>
     {
-        return this.dataProvider('assets', constructPath('textures','png', namespace, identifier));
+        return this.dataProvider.load('assets', constructPath('textures','png', namespace, identifier));
     }
 
     getModel(namespace: string, identifier?: string): Promise<ModelBlock>
     {
-        return this.dataProvider('assets', constructPath('models', 'json', namespace, identifier))
+        return this.dataProvider.load('assets', constructPath('models', 'json', namespace, identifier))
         .then( parseJSON<ModelBlock> ); //TODO - Validation of format
     }
 

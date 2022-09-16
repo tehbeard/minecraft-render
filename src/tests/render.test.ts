@@ -25,12 +25,14 @@ export class RenderTest {
         continue;
       }
 
+      render.blockName = render.blockName?.replace("minecraft:block/", "");
+
       const filePath = path.resolve(__dirname, `../../test-data/${process.env.RENDER_FOLDER || ''}${render.blockName}.png`);
       try{
         await writeAsync(filePath, render.buffer);
       }catch(e)
       {
-        console.error(filePath);
+        console.error(render);
         throw e;
       }
     }
