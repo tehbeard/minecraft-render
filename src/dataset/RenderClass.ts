@@ -208,10 +208,7 @@ export class RenderClass {
           await this.constructBlockMaterial(renderContext, block, element)
         );
 
-        cube.position.set(0, 0, 0);
-        cube.position.add(new THREE.Vector3(...element.from!));
-        cube.position.add(new THREE.Vector3(...element.to!));
-        cube.position.multiplyScalar(0.5);
+        
 
         Logger.trace(
           () =>
@@ -236,6 +233,12 @@ export class RenderClass {
                 THREE.MathUtils.DEG2RAD * element.rotation.angle!
               )
             );
+          } else if (element.rotation.axis == "z") {
+            cube.applyMatrix4(
+              new THREE.Matrix4().makeRotationZ(
+                THREE.MathUtils.DEG2RAD * element.rotation.angle!
+              )
+            );
           }
 
           cube.applyMatrix4(new THREE.Matrix4().makeTranslation(...origin));
@@ -243,6 +246,11 @@ export class RenderClass {
 
           Logger.trace(() => `Element[${i}] rotation applied`);
         }
+
+        cube.position.set(0, 0, 0);
+        cube.position.add(new THREE.Vector3(...element.from!));
+        cube.position.add(new THREE.Vector3(...element.to!));
+        cube.position.multiplyScalar(0.5);
 
         cube.renderOrder = ++i;
 
