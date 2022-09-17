@@ -1,3 +1,4 @@
+import { AnimationMeta } from "../utils/types";
 
 
 //TODO - Rework this to return a buffer/blob instead
@@ -59,4 +60,15 @@ export type ModelBlock = {
     textures: Record<string, string>;
 
     elements: Element[]
+}
+
+
+export type RenderContext = {
+    identifier: string;
+    rotation: number;
+
+    animation?: AnimationMeta,
+    currentTick: number,
+    maxTicks: number
+
 }

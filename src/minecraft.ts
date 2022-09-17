@@ -4,16 +4,19 @@ import type { AnimationMeta, BlockModel, Renderer, RendererOptions } from "./uti
 //@ts-ignore
 import * as deepAssign from 'assign-deep';
 import { ModelBlockstateFile, ResourceLoader } from "./dataset/types";
+import { ResourcePackLoader } from "./dataset/ResourcePackLoader";
 
 export class Minecraft {
 
-  protected loader: ResourceLoader
+  protected loader: ResourceLoader;
+  protected resourceLoader: ResourcePackLoader;
 
   protected renderer!: Renderer | null;
   protected _cache: { [key: string]: any } = {};
 
   protected constructor(loader: ResourceLoader) {
     this.loader = loader;
+    this.resourceLoader = new ResourcePackLoader(loader);
   }
 
   static open(loader: ResourceLoader) {
@@ -53,33 +56,32 @@ export class Minecraft {
   }
 
   async getModelFile<T = BlockModel>(name = 'block/block'): Promise<T> {
-    if (name.startsWith('minecraft:')) {
-      name = name.substring('minecraft:'.length);
-    }
 
-    if (name.indexOf('/') == -1) {
-      name = `block/${name}`;
-    }
+
+    // if (name.indexOf('/') == -1) {
+    //   name = `block/${name}`;
+    // }
 
     const path = `minecraft/models/${name}.json`;
 
-    try {
+    // try {
       if (this._cache[path]) {
         return JSON.parse(JSON.stringify(this._cache[path]));
       }
 
-      this._cache[path] = JSON.parse(
-        (new TextDecoder).decode( await this.loader.load("assets", path) )
-      );
+      this._cache[path] = await this.resourceLoader.getModel(name);
 
       return this._cache[path];
-    } catch (e) {
-      throw new Error(`Unable to find model file: ${path}`);
-    }
+    // } catch (e) {
+    //   throw new Error(`Unable to find model file: ${path}`);
+    // }
   }
 
   async getModelBlockstatesFile<T = ModelBlockstateFile>(name = 'block/block'): Promise<T> {
     if (name.startsWith('minecraft:')) {
+      name = name.substring('minecraft:'.length);
+    }
+    if (name.startsWith('create:')) {
       name = name.substring('minecraft:'.length);
     }
 
@@ -117,36 +119,16 @@ export class Minecraft {
   }
 
   async getTextureFile(name: string = ''): Promise<Buffer> {
-    name = name ?? '';
-    if (name.startsWith('minecraft:')) {
-      name = name.substring('minecraft:'.length);
-    }
-
-    const path = `minecraft/textures/${name}.png`;
-
     try {
-      return Buffer.from(await this.loader.load("assets", path));
+      return this.resourceLoader.getTextureAsBuffer(name);
     } catch (e) {
-      throw new Error(`Unable to find texture file: ${path}`);
+      throw new Error(`Unable to find texture file: ${name}`);
     }
   }
 
 
   async getTextureMetadata(name: string = ''): Promise<AnimationMeta | null> {
-    name = name ?? '';
-    if (name.startsWith('minecraft:')) {
-      name = name.substring('minecraft:'.length);
-    }
-
-    const path = `minecraft/textures/${name}.png.mcmeta`;
-
-    try {
-      return await JSON.parse(
-        (new TextDecoder).decode( await this.loader.load("assets", path) )
-      );
-    } catch (e) {
-      return null;
-    }
+    return this.resourceLoader.getAnimationData(name);
   }
 
   async *render(blocks: BlockModel[], options?: RendererOptions) {

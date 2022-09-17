@@ -1,3 +1,6 @@
+//@ts-ignore
+import * as deepAssign from 'assign-deep';
+import { AnimationMeta } from "../utils/types";
 import { ResourceLoader, ModelBlock, ModelBlockstate, ModelBlockstateFile } from "./types";
 import { constructPath, parseJSON } from "./utils";
 
@@ -11,15 +14,15 @@ export class ResourcePackLoader {
         this.dataProvider = dataProvider;
     }
     
-    getModelBlockstate(namespace: string, identifier?: string ): Promise<ModelBlockstateFile>
+    getBlockstate(namespace: string, identifier?: string ): Promise<ModelBlockstateFile>
     {
         return this.dataProvider.load('assets', constructPath('blockstates', 'json', namespace, identifier))
-        .then( parseJSON<ModelBlockstateFile> ); //TODO - Validation of format
+        .then( d => parseJSON<ModelBlockstateFile>(d) ); //TODO - Validation of format
     }
 
     getDefaultModelblockstate(namespace: string, identifier?: string): Promise<ModelBlockstate>
     {
-        return this.getModelBlockstate(namespace, identifier).then(
+        return this.getBlockstate(namespace, identifier).then(
             record => {
                 try{
                     if("variants" in record)
@@ -42,6 +45,19 @@ export class ResourcePackLoader {
         return this.dataProvider.load('assets', constructPath('textures','png', namespace, identifier));
     }
 
+    async getAnimationData(namespace:string, identifier?: string): Promise<AnimationMeta|null>
+    {
+        try {
+        return JSON.parse(
+            (new TextDecoder).decode( 
+                await this.dataProvider.load('assets', constructPath('textures','png.mcmeta', namespace, identifier))
+             )
+        ) as AnimationMeta;
+        } catch (e) {
+            return null;
+        }
+    }
+
     async getTextureAsBuffer(namespace: string, identifier?: string): Promise<Buffer>
     {
         return Buffer.from(await this.getTexture(namespace, identifier));
@@ -50,7 +66,7 @@ export class ResourcePackLoader {
     getModel(namespace: string, identifier?: string): Promise<ModelBlock>
     {
         return this.dataProvider.load('assets', constructPath('models', 'json', namespace, identifier))
-        .then( parseJSON<ModelBlock> ); //TODO - Validation of format
+        .then( d => parseJSON<ModelBlock>(d) ); //TODO - Validation of format
     }
 
     getModels(namespace: string, identifier?: string): Promise<ModelBlock[]>
@@ -61,7 +77,7 @@ export class ResourcePackLoader {
             // If we have a parent
             if(model.parent != undefined)
             {
-                return this.getModels(namespace, identifier)
+                return this.getModels(model.parent)
                 .then( models => {
                     return models.concat(model);
                 })
@@ -69,5 +85,12 @@ export class ResourcePackLoader {
                 return [ model ];
             }
         })
+    }
+
+    getCompiledModel(namespace: string, identifier?: string): Promise<ModelBlock>
+    {
+        return this.getModels(namespace, identifier).then(
+            models => models.reduce( (o, m) => deepAssign(o, m), {})
+        ) as Promise<ModelBlock>;
     }
 }
