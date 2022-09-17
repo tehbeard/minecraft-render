@@ -6,8 +6,7 @@
   "types": "dist/index.d.ts",
   "scripts": {
     "build": "tsc",
-    "test": "nole ./src/**/*.test.ts",
-    "testnew": "nole ./src/**/newrender.test.ts"
+    "test": "nole ./src/**/*.test.ts"
   },
   "bin": {
     "minecraft-render": "./bin/minecraft-render.js"

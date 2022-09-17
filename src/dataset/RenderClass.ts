@@ -149,12 +149,13 @@ export class RenderClass {
       return null;
     }
 
-    let blockstate = Object.values(blockstates.variants)[0];
+    let blockstate = blockstates.variants[Object.keys(blockstates.variants).sort()[0]];
     blockstate = Array.isArray(blockstate) ? blockstate[0] : blockstate;
 
     const renderContext: RenderContext = {
       identifier: resourceLocationAsString(namespace, identifier),
-      rotation: blockstate?.y ?? 0,
+      rotationY: blockstate?.y ?? 0,
+      rotationX: blockstate?.x ?? 0,
       currentTick: 0,
       maxTicks: 0
     };
@@ -263,7 +264,8 @@ export class RenderClass {
 
       pivot.add(modelGroup);
 
-      pivot.rotateY(THREE.MathUtils.DEG2RAD * renderContext.rotation);
+      pivot.rotateY(THREE.MathUtils.DEG2RAD * renderContext.rotationY);
+      pivot.rotateX(THREE.MathUtils.DEG2RAD * renderContext.rotationX);
 
       scene.add(pivot);
 

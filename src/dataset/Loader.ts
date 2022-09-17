@@ -16,7 +16,8 @@ export function jarLoader(jarPath: string): ResourceLoader
         {
             return Object.entries(await jar.entries())
             .filter(([key]) => key.startsWith(packType + "/" + path))
-            .map(([_, value]) => value.name.substring( packType.length + 1));
+            .map(([_, value]) => value.name.substring( (packType + "/" + path).length + ( path.length > 0 ? 1 : 0) ))
+            .filter( f => f!="");
         },
         async close() { jar.close(); },
         async loadAll(packType: "assets"|"data", path: string): Promise<Uint8Array []> {

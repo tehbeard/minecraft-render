@@ -65,7 +65,8 @@ export type ModelBlock = {
 
 export type RenderContext = {
     identifier: string;
-    rotation: number;
+    rotationY: number;
+    rotationX: number;
 
     animation?: AnimationMeta,
     currentTick: number,

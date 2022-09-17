@@ -1,63 +1,63 @@
-import { Dependency, Skip, Spec } from 'nole';
-import { MinecraftTest } from './minecraft.test';
+import { Dependency, Skip, Spec } from "nole";
 
-import * as path from 'path';
-import * as fs from 'fs';
-import { BlockModel } from '../utils/types';
-import { Logger } from '../utils/logger';
+import * as path from "path";
+import * as fs from "fs";
+import { BlockModel } from "../utils/types";
+import { Logger } from "../utils/logger";
+import { RenderClass } from "../dataset/RenderClass";
+import { createMultiloader, jarLoader } from "../dataset/Loader";
+import { ResourcePackLoader } from "../dataset/ResourcePackLoader";
+import { DownloadTest } from "./download.test";
 
+export class NewRenderTest {
+  @Dependency(DownloadTest)
+  jarTest!: DownloadTest;
 
-export class RenderTest {
-  @Dependency(MinecraftTest)
-  minecraftTest!: MinecraftTest;
-
-  @Spec()
-  async renderCreateOne()
-  {
-    const model = await this.minecraftTest.minecraft.getModel('create:block/cogwheel');
-    for await (const render of this.minecraftTest.minecraft.render([model])){
-      if (!render.buffer) {
-        console.log('Rendering skipped ' + render.blockName + ' reason: ' + render.skip!);
-        continue;
-      }
-
-      render.blockName = render.blockName?.replace("create:block/", "");
-
-      const filePath = path.resolve(__dirname, `../../test-data/${process.env.RENDER_FOLDER || ''}${render.blockName}.png`);
-      try{
-        await writeAsync(filePath, render.buffer);
-      }catch(e)
-      {
-        console.error(render);
-        throw e;
-      }
-    }
-  }
   @Spec(180000)
   async renderAll() {
 
-    // const blocks = [await this.minecraftTest.minecraft.getModel('cactus')];
-    const blocks = await this.minecraftTest.minecraft.getBlockList();
+    const packLoader = new ResourcePackLoader(
+      createMultiloader(
+        jarLoader("./test-data/test.jar")
+      )
+    );
+    const renderer = new RenderClass(
+      packLoader,
+      {}
+    );
 
-    const renderCandidates = pickBlocks(blocks);
+    for(let namespace of await packLoader.getNamespaces()){
 
-    for await (const render of this.minecraftTest.minecraft.render(renderCandidates)) {
-      if (!render.buffer) {
-        console.log('Rendering skipped ' + render.blockName + ' reason: ' + render.skip!);
-        continue;
-      }
+      console.log("Processing " + namespace);
 
-      render.blockName = render.blockName?.replace("minecraft:block/", "");
 
-      const filePath = path.resolve(__dirname, `../../test-data/${process.env.RENDER_FOLDER || ''}${render.blockName}.png`);
+      
+      const dirPath = path.resolve(__dirname,`../../test-data/${namespace}`);
       try{
-        await writeAsync(filePath, render.buffer);
+        fs.statSync(dirPath)
       }catch(e)
       {
-        console.error(render);
-        throw e;
+        fs.mkdirSync(dirPath);
+      }
+
+      const blockstates = await packLoader.getBlockstates(namespace);
+      for(let blockstate of blockstates)
+      {
+        console.log(namespace + ":" + blockstate);
+
+        const filePath = path.resolve(dirPath, `${blockstate}.png`)
+
+        const buffer = await renderer.render(namespace, blockstate);
+
+        if(buffer!=null){
+          await writeAsync(filePath, buffer);
+        }else{
+          console.log("Did not render");
+        }
+
       }
     }
+
   }
 }
 
@@ -77,9 +77,11 @@ function pickBlocks(blocks: BlockModel[]) {
     return blocks;
   }
 
-  const preferred = BLOCK_NAMES.split(',');
+  const preferred = BLOCK_NAMES.split(",");
 
-  Logger.info(() => `BLOCK_NAMES flag is enabled. "${BLOCK_NAMES}"`)
+  Logger.info(() => `BLOCK_NAMES flag is enabled. "${BLOCK_NAMES}"`);
 
-  return blocks.filter(block => preferred.some(name => name == block.blockName));
+  return blocks.filter((block) =>
+    preferred.some((name) => name == block.blockName)
+  );
 }

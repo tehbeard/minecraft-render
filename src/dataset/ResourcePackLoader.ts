@@ -93,4 +93,23 @@ export class ResourcePackLoader {
             models => models.reduce( (o, m) => deepAssign(o, m), {})
         ) as Promise<ModelBlock>;
     }
+
+    async getNamespaces(): Promise<string[]> {
+        return Array.from(
+          new Set(
+            (await this.dataProvider.list("assets", ""))
+                .map( f => f.split("/")[0] )
+                .filter( f => !['realms','.mcassetsroot'].includes(f))
+          )
+        );
+      }
+    
+    async getBlockstates(namespace: string): Promise<string[]> {
+        return Array.from(
+          new Set(
+            (await this.dataProvider.list("assets", namespace+ "/blockstates"))
+            .map( f => f.replace(".json", ""))
+          )
+        );
+      }
 }
